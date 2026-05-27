@@ -45,64 +45,155 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold mb-4">Discover</h1>
-      <p className="text-sm text-slate-600 mb-6">
-        Cheap preview — lists detected <code>BasicSKILL</code> function blocks
-        without rendering TTL. Useful for picking a subset before committing to
-        a full <code>/convert</code>.
-      </p>
+    <div style={{ maxWidth: 980 }}>
+      <div className="view-head">
+        <div>
+          <h1>
+            <em>Discover</em> skills
+          </h1>
+          <p className="view-sub">
+            Cheap preview — lists detected <code>BasicSKILL</code> function
+            blocks without rendering TTL. Useful for picking a subset before
+            committing to a full <code>/convert</code>.
+          </p>
+        </div>
+      </div>
 
-      <div className="space-y-4">
-        <ZipUploader onFile={setFile} file={file} />
-        <button
-          type="button"
-          onClick={submit}
-          disabled={busy || !file}
-          className="bg-indigo-600 text-white px-4 py-2 rounded disabled:bg-slate-300 hover:bg-indigo-700"
-        >
-          {busy ? "Discovering…" : "Discover skills"}
-        </button>
-        {err && <div className="text-sm text-rose-600">{err}</div>}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+          gap: 18,
+        }}
+      >
+        <div className="card">
+          <div className="card-head">
+            <h3>Source</h3>
+            <span className="card-meta">POST /skills</span>
+          </div>
+          <div
+            className="card-body"
+            style={{ display: "flex", flexDirection: "column", gap: 14 }}
+          >
+            <ZipUploader onFile={setFile} file={file} />
+            <button
+              type="button"
+              className="btn is-primary"
+              onClick={submit}
+              disabled={busy || !file}
+            >
+              {busy ? "Discovering…" : "Discover skills"}
+            </button>
+            {err && (
+              <div
+                className="text-mono"
+                style={{
+                  fontSize: 12,
+                  color: "var(--alert)",
+                  background: "rgba(255,87,96,0.06)",
+                  border: "1px solid rgba(255,87,96,0.3)",
+                  borderRadius: 8,
+                  padding: "8px 12px",
+                }}
+              >
+                {err}
+              </div>
+            )}
+          </div>
+        </div>
 
-        {result && (
-          <div className="border border-slate-200 rounded p-4 bg-white">
-            <div className="text-sm font-medium mb-2">
-              Detected {result.skills.length} skill function block
-              {result.skills.length === 1 ? "" : "s"}
-            </div>
-            {result.skills.length === 0 ? (
-              <div className="text-sm text-slate-500">
+        <div className="card">
+          <div className="card-head">
+            <h3>
+              {result
+                ? `Detected ${result.skills.length} skill${
+                    result.skills.length === 1 ? "" : "s"
+                  }`
+                : "Detected skills"}
+            </h3>
+            {result && (
+              <span className="card-meta">
+                {selected.size} of {result.skills.length} selected
+              </span>
+            )}
+          </div>
+          <div className="card-body">
+            {!result ? (
+              <div
+                style={{
+                  padding: "44px 8px",
+                  textAlign: "center",
+                  color: "var(--cream-faint)",
+                  fontSize: 13,
+                }}
+              >
+                Upload a project to preview its skill function blocks.
+              </div>
+            ) : result.skills.length === 0 ? (
+              <div
+                style={{
+                  padding: "30px 8px",
+                  textAlign: "center",
+                  color: "var(--cream-dim)",
+                  fontSize: 13,
+                }}
+              >
                 {result.warnings[0] ?? "no BasicSKILL instances found"}
               </div>
             ) : (
               <>
-                <ul className="space-y-1 mb-3">
+                <ul
+                  style={{
+                    listStyle: "none",
+                    padding: 0,
+                    margin: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 4,
+                    marginBottom: 16,
+                  }}
+                >
                   {result.skills.map((name) => (
-                    <li key={name} className="text-sm">
-                      <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <li key={name}>
+                      <label
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: "7px 10px",
+                          borderRadius: 6,
+                          cursor: "pointer",
+                          fontFamily: "var(--mono)",
+                          fontSize: 12.5,
+                          color: "var(--cream)",
+                          background: selected.has(name)
+                            ? "rgba(255,226,43,0.05)"
+                            : "transparent",
+                        }}
+                      >
                         <input
                           type="checkbox"
                           checked={selected.has(name)}
                           onChange={() => toggle(name)}
+                          style={{ accentColor: "var(--accent)" }}
                         />
-                        <code>{name}</code>
+                        <span>{name}</span>
                       </label>
                     </li>
                   ))}
                 </ul>
                 <button
                   type="button"
+                  className="btn is-primary is-sm"
                   onClick={renderSelected}
                   disabled={selected.size === 0}
-                  className="text-sm px-3 py-1 border rounded hover:bg-slate-100 disabled:opacity-50"
                 >
                   Render {selected.size} selected →
                 </button>
               </>
             )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

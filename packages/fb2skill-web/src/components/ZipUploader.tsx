@@ -18,8 +18,8 @@ export default function ZipUploader({ onFile, file, label = "Project zip" }: Pro
   }
 
   return (
-    <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+    <div className="field">
+      <label>{label}</label>
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -28,33 +28,32 @@ export default function ZipUploader({ onFile, file, label = "Project zip" }: Pro
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        className={`border-2 border-dashed rounded p-6 text-center cursor-pointer transition ${
-          dragging
-            ? "border-indigo-500 bg-indigo-50"
-            : "border-slate-300 bg-white hover:border-slate-400"
-        }`}
+        className={`dropzone${dragging ? " is-dragging" : ""}`}
       >
         <input
           ref={inputRef}
           type="file"
           accept=".zip,application/zip"
-          className="hidden"
+          style={{ display: "none" }}
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (f) onFile(f);
           }}
         />
         {file ? (
-          <div className="text-sm">
-            <div className="font-medium text-slate-900">{file.name}</div>
-            <div className="text-slate-500 text-xs">
-              {(file.size / 1024 / 1024).toFixed(2)} MB
+          <>
+            <div className="dz-file">{file.name}</div>
+            <div className="dz-meta">
+              {(file.size / 1024 / 1024).toFixed(2)} MB · ready to upload
             </div>
-          </div>
+          </>
         ) : (
-          <div className="text-sm text-slate-500">
-            Drop a .zip of your IEC 61499 project here, or click to browse
-          </div>
+          <>
+            <div className="dz-hint">
+              Drop your IEC 61499 project <code>.zip</code> here
+            </div>
+            <div className="dz-sub">or click to browse</div>
+          </>
         )}
       </div>
     </div>

@@ -18,15 +18,61 @@ import {
   transitionTarget,
 } from "../state_machine";
 
-const terminalStates = new Set(["Idle", "Complete", "Stopped", "Aborted", "Held", "Suspended"]);
+const terminalStates = new Set([
+  "Idle",
+  "Complete",
+  "Stopped",
+  "Aborted",
+  "Held",
+  "Suspended",
+]);
+
+const COLOR = {
+  bg: "#161616",
+  border: "rgba(250,250,250,0.18)",
+  text: "#fafafa",
+  accent: "#FFE22B",
+  ok: "#2fe6a1",
+  alert: "#ff5760",
+  muted: "rgba(250,250,250,0.62)",
+  edge: "#FFE22B",
+  edgeAuto: "rgba(250,250,250,0.36)",
+};
 
 function nodeStyle(name: string): Partial<Node["style"]> {
-  if (name === "Execute") return { background: "#dcfce7", border: "1px solid #16a34a" };
-  if (name === "Idle") return { background: "#e0e7ff", border: "1px solid #4f46e5" };
-  if (name === "Aborted" || name === "Aborting")
-    return { background: "#fee2e2", border: "1px solid #dc2626" };
-  if (terminalStates.has(name)) return { background: "#f1f5f9", border: "1px solid #64748b" };
-  return { background: "#ffffff", border: "1px solid #cbd5e1" };
+  if (name === "Execute") {
+    return {
+      background: "rgba(47,230,161,0.12)",
+      border: `1px solid ${COLOR.ok}`,
+      color: COLOR.text,
+    };
+  }
+  if (name === "Idle") {
+    return {
+      background: "rgba(255,226,43,0.12)",
+      border: `1px solid ${COLOR.accent}`,
+      color: COLOR.text,
+    };
+  }
+  if (name === "Aborted" || name === "Aborting") {
+    return {
+      background: "rgba(255,87,96,0.12)",
+      border: `1px solid ${COLOR.alert}`,
+      color: COLOR.text,
+    };
+  }
+  if (terminalStates.has(name)) {
+    return {
+      background: "#1a1a1a",
+      border: `1px solid ${COLOR.border}`,
+      color: COLOR.muted,
+    };
+  }
+  return {
+    background: COLOR.bg,
+    border: `1px solid ${COLOR.border}`,
+    color: COLOR.text,
+  };
 }
 
 export default function VisualizePage() {
@@ -36,7 +82,14 @@ export default function VisualizePage() {
         id: name,
         position: STATE_POSITIONS[name],
         data: { label: name },
-        style: { padding: 6, borderRadius: 6, fontSize: 12, ...nodeStyle(name) },
+        style: {
+          padding: 8,
+          borderRadius: 7,
+          fontSize: 12,
+          fontFamily: "var(--mono)",
+          letterSpacing: "0.02em",
+          ...nodeStyle(name),
+        },
       })),
     []
   );
@@ -47,21 +100,36 @@ export default function VisualizePage() {
       for (const t of trans) {
         const target = transitionTarget(t);
         if (!target) continue;
-        const isAuto = !(t in { StartCommand: 1, ResetCommand: 1, HoldCommand: 1,
-          UnholdCommand: 1, SuspendCommand: 1, UnsuspendCommand: 1,
-          ClearCommand: 1, StopCommand: 1, AbortCommand: 1 });
+        const isAuto = !(t in {
+          StartCommand: 1,
+          ResetCommand: 1,
+          HoldCommand: 1,
+          UnholdCommand: 1,
+          SuspendCommand: 1,
+          UnsuspendCommand: 1,
+          ClearCommand: 1,
+          StopCommand: 1,
+          AbortCommand: 1,
+        });
         out.push({
           id: `${src}--${t}`,
           source: src,
           target,
           label: transitionLabel(t),
-          labelStyle: { fontSize: 10, fill: isAuto ? "#475569" : "#1e3a8a" },
-          labelBgStyle: { fill: "#ffffff", fillOpacity: 0.85 },
-          labelBgPadding: [2, 2],
+          labelStyle: {
+            fontSize: 10,
+            fontFamily: "JetBrains Mono, ui-monospace, monospace",
+            fill: isAuto ? COLOR.muted : COLOR.accent,
+          },
+          labelBgStyle: { fill: "#0a0a0a", fillOpacity: 0.85 },
+          labelBgPadding: [3, 3],
           style: isAuto
-            ? { stroke: "#94a3b8", strokeDasharray: "4 4" }
-            : { stroke: "#4f46e5" },
-          markerEnd: { type: MarkerType.ArrowClosed, color: isAuto ? "#94a3b8" : "#4f46e5" },
+            ? { stroke: COLOR.edgeAuto, strokeDasharray: "4 4", strokeWidth: 1 }
+            : { stroke: COLOR.edge, strokeWidth: 1.4 },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: isAuto ? COLOR.edgeAuto : COLOR.edge,
+          },
         });
       }
     }
@@ -69,19 +137,39 @@ export default function VisualizePage() {
   }, []);
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col">
-      <h1 className="text-2xl font-bold mb-1">ISA-88 / PackML state machine</h1>
-      <p className="text-sm text-slate-600 mb-2">
-        17 states · {edges.length} transitions ·{" "}
-        <span className="inline-block w-3 h-3 align-middle bg-indigo-600 rounded"></span>{" "}
-        command edge ·{" "}
-        <span
-          className="inline-block w-4 align-middle border-t-2 border-slate-400"
-          style={{ borderStyle: "dashed" }}
-        ></span>{" "}
-        auto transition
-      </p>
-      <div className="flex-1 border border-slate-200 rounded bg-white">
+    <div style={{ height: "calc(100vh - var(--topbar-h) - 90px)", display: "flex", flexDirection: "column" }}>
+      <div className="view-head" style={{ marginBottom: 14 }}>
+        <div>
+          <h1>
+            ISA-88 / PackML <em>state machine</em>
+          </h1>
+          <p className="view-sub">
+            17 states · {edges.length} transitions ·{" "}
+            <span
+              style={{
+                display: "inline-block",
+                width: 12,
+                height: 2,
+                background: COLOR.accent,
+                verticalAlign: "middle",
+                marginRight: 4,
+              }}
+            />
+            command edge ·{" "}
+            <span
+              style={{
+                display: "inline-block",
+                width: 14,
+                verticalAlign: "middle",
+                borderTop: `1.5px dashed ${COLOR.edgeAuto}`,
+                marginRight: 4,
+              }}
+            />
+            auto transition
+          </p>
+        </div>
+      </div>
+      <div className="flow-shell" style={{ flex: 1, minHeight: 420 }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -92,7 +180,7 @@ export default function VisualizePage() {
           elementsSelectable={true}
           proOptions={{ hideAttribution: true }}
         >
-          <Background gap={16} size={1} color="#e2e8f0" />
+          <Background gap={18} size={1} color="rgba(255,255,255,0.06)" />
           <Controls />
         </ReactFlow>
       </div>

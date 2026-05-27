@@ -73,11 +73,8 @@ export default function TtlViewer({ ttl, maxHeight = "70vh" }: Props) {
   }, [ttl]);
 
   return (
-    <div
-      className="rounded border border-slate-200 overflow-auto bg-slate-50"
-      style={{ maxHeight }}
-    >
-      <pre className="text-xs leading-relaxed m-0">
+    <div className="code-pane" style={{ maxHeight }}>
+      <pre>
         <code ref={ref} className="language-turtle">
           {ttl}
         </code>
