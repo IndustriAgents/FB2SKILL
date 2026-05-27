@@ -1,0 +1,13 @@
+# =============================================================================
+# Skill command variable  ->  OPC UA node SKILL_CMD
+# (single INT variable; each transition writes its required value into it)
+# =============================================================================
+
+:{{ skill.name }}_SkillCommand a CaSk:SkillCommand , OpcUa:UAVariable , DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "ActualValue" ;
+    OpcUa:nodeId "{{ skill.skill_command.node_id_str }}" ;
+    OpcUa:nodeNamespace "{{ skill.skill_command.namespace_idx }}" ;
+    DINEN61360:is_Instance_Description_of_Data_Element
+{% for cmd in commands %}        :{{ skill.name }}_{{ cmd }}Command_DE{% if not loop.last %} ,
+{% else %} .
+{% endif %}{% endfor %}

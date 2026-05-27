@@ -1,0 +1,15 @@
+# =============================================================================
+# Data elements for the CURRENT_STATE output, one per ISA-88 state.
+# Each carries an "Assurance" instance holding the INT value that CURRENT_STATE
+# takes on while the state machine is in that state.
+# =============================================================================
+
+{% for st in states %}
+:{{ skill.name }}_CurrentStateOutput_{{ st }}_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :{{ skill.name }}_CurrentState_{{ st }}_Assured .
+:{{ skill.name }}_CurrentState_{{ st }}_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value {{ state_code[st] }} .
+
+{% endfor %}

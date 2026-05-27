@@ -1,0 +1,12 @@
+services:
+  fb2skill-rest:
+    build:
+      context: ../..
+      dockerfile: packages/fb2skill-rest/Dockerfile
+    image: fb2skill-rest:0.1.0
+    ports:
+      - "8000:8000"
+    environment:
+      FB2SKILL_LOG_LEVEL: info
+      FB2SKILL_MAX_UPLOAD_MB: "50"
+    restart: unless-stopped

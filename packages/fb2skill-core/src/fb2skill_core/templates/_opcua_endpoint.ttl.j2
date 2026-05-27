@@ -1,0 +1,36 @@
+# =============================================================================
+# OPC UA server, node set and endpoint
+# =============================================================================
+
+:{{ skill.name }}_OPCUAServer a OpcUa:UAServer , owl:NamedIndividual ;
+    OpcUa:hasNodeSet :{{ skill.name }}_OPCUANodeSet ;
+    OpcUa:hasEndpointDescription :{{ skill.name }}_OPCUAServer_Endpoint .
+
+:{{ skill.name }}_OPCUANodeSet a OpcUa:UANodeSet , owl:NamedIndividual ;
+    OpcUa:containsNode :{{ skill.name }}_Interface ,
+        :{{ skill.name }}_SkillCommand ,
+        :{{ skill.name }}_CurrentStateOutput{% for v in skill.parameters %} ,
+        :{{ skill.name }}_SkillParameter_{{ v.name }}{% endfor %}{% for v in skill.outputs %} ,
+        :{{ skill.name }}_SkillOutput_{{ v.name }}{% endfor %} ;
+    OpcUa:organizes :{{ skill.name }}_Interface ,
+        :{{ skill.name }}_SkillCommand ,
+        :{{ skill.name }}_CurrentStateOutput{% for v in skill.parameters %} ,
+        :{{ skill.name }}_SkillParameter_{{ v.name }}{% endfor %}{% for v in skill.outputs %} ,
+        :{{ skill.name }}_SkillOutput_{{ v.name }}{% endfor %} .
+
+:{{ skill.name }}_OPCUAServer_Endpoint a OpcUa:EndpointDescription , owl:NamedIndividual ;
+    OpcUa:hasEndpointUrl "{{ config.endpoint_url }}" ;
+    OpcUa:hasMessageSecurityMode OpcUa:MessageSecurityMode_None ;
+    OpcUa:hasSecurityPolicy OpcUa:SecurityPolicy_None ;
+    OpcUa:hasUserIdentityToken :{{ skill.name }}_OPCUAServer_Endpoint_UserIdentityToken .
+
+:{{ skill.name }}_OPCUAServer_Endpoint_UserIdentityToken a OpcUa:AnonymousIdentityToken , OpcUa:UserIdentityToken , owl:NamedIndividual ;
+    OpcUa:requiresUserName "" ;
+    OpcUa:requiresPassword "" .
+
+# The CaSkade-MES backend resolves the server endpoint with a query that joins on
+#   ?tokenType rdfs:subClassOf OpcUa:UserIdentityToken
+# That subclass axiom belongs to the OPC UA ontology. It is asserted here so the
+# skill resolves its endpoint even when that ontology is not imported into
+# GraphDB - otherwise the query returns no rows and the backend crashes.
+OpcUa:AnonymousIdentityToken rdfs:subClassOf OpcUa:UserIdentityToken .

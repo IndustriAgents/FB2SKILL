@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+out/
+.venv/
+.env
+
+# Claude Code local-only settings
+.claude/settings.local.json
+
+# Node (fb2skill-web also has its own .gitignore)
+node_modules/
+*.tsbuildinfo

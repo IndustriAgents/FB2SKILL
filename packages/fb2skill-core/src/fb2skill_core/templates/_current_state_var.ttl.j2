@@ -1,0 +1,12 @@
+# =============================================================================
+# Current state output  ->  OPC UA node CURRENT_STATE
+# =============================================================================
+
+:{{ skill.name }}_CurrentStateOutput a CaSk:CurrentStateOutput , OpcUa:UAVariable , DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "ActualValue" ;
+    OpcUa:nodeId "{{ skill.current_state.node_id_str }}" ;
+    OpcUa:nodeNamespace "{{ skill.current_state.namespace_idx }}" ;
+    DINEN61360:is_Instance_Description_of_Data_Element
+{% for st in states %}        :{{ skill.name }}_CurrentStateOutput_{{ st }}_DE{% if not loop.last %} ,
+{% else %} .
+{% endif %}{% endfor %}

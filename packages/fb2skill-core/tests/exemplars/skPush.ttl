@@ -1,0 +1,656 @@
+# =============================================================================
+# skPush.ttl
+# -----------------------------------------------------------------------------
+# Capability & Skill description of the IEC 61499 "skPush" application,
+# deployed on the Schneider Electric soft dPAC (SE.DPAC#Soft_dPAC, PLC1).
+#
+# Generated from:
+#   - IEC 61499 project : d:\FESTO_DS_skills\IEC61499  (skPush.fbt / BasicSKILL / SKILL_BFB)
+#   - OPC UA node set   : System.PLC1.opcua.xml  (UAObject "skPush")
+#
+# The skPush function block exposes a BasicSKILL instance ("Skill_Commands")
+# whose ISA-88 / PackML state machine is driven by writing an INT command to
+# SKILL_CMD and observed by reading the INT CURRENT_STATE variable.
+#
+# OPC UA server : opc.tcp://host.docker.internal:4840  (SecurityPolicy None,
+#                 Anonymous). The soft dPAC OPC UA server runs on the Windows
+#                 host (advertised as opc.tcp://LTU-83334:4840); the CaSkade-MES
+#                 backend runs in Docker and reaches the host via
+#                 host.docker.internal.
+# Namespace ns=2: http://se.com/EcostruxureSystemExpert
+#                 (declared as index 1 in System.PLC1.opcua.xml, but the running
+#                  server resolves it to index 2 - index 1 is the server's own)
+#
+# Modelled as a CaSkMan:OpcUaVariableSkillInterface so that the CaSkade-MES
+# OpcUaVariableSkillExecutor fires transitions by writing the command value.
+#
+# SKILL_CMD command values : Start=1 Reset=2 Hold=3 Unhold=4 Suspend=5
+#                            Unsuspend=6 Clear=7 Stop=8 Abort=9
+# CURRENT_STATE values     : Idle=1 Starting=2 Execute=3 Completing=4 Complete=5
+#                            Resetting=6 Holding=7 Held=8 Unholding=9
+#                            Suspending=10 Suspended=11 Unsuspending=12
+#                            Stopping=13 Stopped=14 Aborting=15 Aborted=16
+#                            Clearing=17
+# =============================================================================
+
+@prefix :            <http://www.ltu.se/aut/ontologies/FESTO_DS_skills#> .
+@prefix CSS:         <http://www.w3id.org/hsu-aut/css#> .
+@prefix CaSk:        <http://www.w3id.org/hsu-aut/cask#> .
+@prefix CaSkMan:     <http://www.w3id.org/hsu-aut/caskman#> .
+@prefix OpcUa:       <http://www.w3id.org/hsu-aut/OpcUa#> .
+@prefix ISA88:       <http://www.hsu-ifa.de/ontologies/ISA-TR88#> .
+@prefix DINEN61360:  <http://www.w3id.org/hsu-aut/DINEN61360#> .
+@prefix VDI3682:     <http://www.w3id.org/hsu-aut/VDI3682#> .
+@prefix owl:         <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:         <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:        <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:         <http://www.w3.org/2001/XMLSchema#> .
+
+
+# =============================================================================
+# Resource, Capability and Skill
+# =============================================================================
+
+:soft_dPAC_PLC1 a CSS:Resource , owl:NamedIndividual ;
+    CSS:providesCapability :skPush_Capability ;
+    CSS:providesSkill :skPush .
+
+:skPush_Capability a CaSk:ProvidedCapability , CSS:Capability , owl:NamedIndividual ;
+    CSS:isRealizedBySkill :skPush .
+
+# A VDI 3682 process operator that requires the capability. The CaSkade-MES
+# capability query only returns capabilities required by a ProcessOperator,
+# so this link is needed for the skill to register cleanly.
+:skPush_Process a VDI3682:ProcessOperator , owl:NamedIndividual ;
+    CSS:requiresCapability :skPush_Capability .
+
+:skPush a CSS:Skill , CaSkMan:PlcSkill , owl:NamedIndividual ;
+    CSS:behaviorConformsTo :skPush_StateMachine ;
+    CSS:accessibleThrough :skPush_Interface ;
+    CaSkMan:accessibleThroughOpcUaVariableInterface :skPush_Interface ;
+    CaSk:hasCurrentState :skPush_StateMachine_Idle ;
+    CaSk:hasCurrentStateOutput :skPush_CurrentStateOutput ;
+    CaSk:hasSkillCommand :skPush_SkillCommand ;
+    CaSk:hasSkillOutput :skPush_CurrentStateOutput , :skPush_SkillOutput_OUT1 ;
+    CSS:hasParameter :skPush_SkillParameter_IN1 .
+
+
+# =============================================================================
+# Skill interface (OPC UA variable interface)
+# =============================================================================
+
+:skPush_Interface a CaSkMan:OpcUaVariableSkillInterface , CSS:SkillInterface , owl:NamedIndividual ;
+    OpcUa:nodeId "ns=2;g=286c6a78-ac5a-ed4b-54f8-6e82a8048f3b" ;
+    OpcUa:nodeNamespace "2" ;
+    CaSk:exposesStateMachine :skPush_StateMachine ;
+    CaSk:exposesSkillParameter :skPush_SkillCommand ,
+        :skPush_SkillParameter_IN1 ,
+        :skPush_SkillOutput_OUT1 ;
+    OpcUa:organizes :skPush_SkillCommand ,
+        :skPush_CurrentStateOutput ,
+        :skPush_SkillParameter_IN1 ,
+        :skPush_SkillOutput_OUT1 .
+
+
+# =============================================================================
+# OPC UA server, node set and endpoint
+# =============================================================================
+
+:skPush_OPCUAServer a OpcUa:UAServer , owl:NamedIndividual ;
+    OpcUa:hasNodeSet :skPush_OPCUANodeSet ;
+    OpcUa:hasEndpointDescription :skPush_OPCUAServer_Endpoint .
+
+:skPush_OPCUANodeSet a OpcUa:UANodeSet , owl:NamedIndividual ;
+    OpcUa:containsNode :skPush_Interface ,
+        :skPush_SkillCommand ,
+        :skPush_CurrentStateOutput ,
+        :skPush_SkillParameter_IN1 ,
+        :skPush_SkillOutput_OUT1 ;
+    OpcUa:organizes :skPush_Interface ,
+        :skPush_SkillCommand ,
+        :skPush_CurrentStateOutput ,
+        :skPush_SkillParameter_IN1 ,
+        :skPush_SkillOutput_OUT1 .
+
+:skPush_OPCUAServer_Endpoint a OpcUa:EndpointDescription , owl:NamedIndividual ;
+    OpcUa:hasEndpointUrl "opc.tcp://host.docker.internal:4840" ;
+    OpcUa:hasMessageSecurityMode OpcUa:MessageSecurityMode_None ;
+    OpcUa:hasSecurityPolicy OpcUa:SecurityPolicy_None ;
+    OpcUa:hasUserIdentityToken :skPush_OPCUAServer_Endpoint_UserIdentityToken .
+
+:skPush_OPCUAServer_Endpoint_UserIdentityToken a OpcUa:AnonymousIdentityToken , OpcUa:UserIdentityToken , owl:NamedIndividual ;
+    OpcUa:requiresUserName "" ;
+    OpcUa:requiresPassword "" .
+
+# The CaSkade-MES backend resolves the server endpoint with a query that joins on
+#   ?tokenType rdfs:subClassOf OpcUa:UserIdentityToken
+# That subclass axiom belongs to the OPC UA ontology. It is asserted here so the
+# skill resolves its endpoint even when that ontology is not imported into
+# GraphDB - otherwise the query returns no rows and the backend crashes.
+OpcUa:AnonymousIdentityToken rdfs:subClassOf OpcUa:UserIdentityToken .
+
+
+# =============================================================================
+# Skill command variable  ->  OPC UA node SKILL_CMD
+# (single INT variable; each transition writes its required value into it)
+# =============================================================================
+
+:skPush_SkillCommand a CaSk:SkillCommand , OpcUa:UAVariable , DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "ActualValue" ;
+    OpcUa:nodeId "ns=2;g=0240d7be-a7cf-d582-b952-06c4d5efe4bc" ;
+    OpcUa:nodeNamespace "2" ;
+    DINEN61360:is_Instance_Description_of_Data_Element
+        :skPush_StartCommand_DE ,
+        :skPush_ResetCommand_DE ,
+        :skPush_HoldCommand_DE ,
+        :skPush_UnholdCommand_DE ,
+        :skPush_SuspendCommand_DE ,
+        :skPush_UnsuspendCommand_DE ,
+        :skPush_ClearCommand_DE ,
+        :skPush_StopCommand_DE ,
+        :skPush_AbortCommand_DE .
+
+
+# =============================================================================
+# Current state output  ->  OPC UA node CURRENT_STATE
+# =============================================================================
+
+:skPush_CurrentStateOutput a CaSk:CurrentStateOutput , OpcUa:UAVariable , DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "ActualValue" ;
+    OpcUa:nodeId "ns=2;g=f3788f70-6368-bd6b-25da-9c49e7768653" ;
+    OpcUa:nodeNamespace "2" ;
+    DINEN61360:is_Instance_Description_of_Data_Element
+        :skPush_CurrentStateOutput_Idle_DE ,
+        :skPush_CurrentStateOutput_Starting_DE ,
+        :skPush_CurrentStateOutput_Execute_DE ,
+        :skPush_CurrentStateOutput_Completing_DE ,
+        :skPush_CurrentStateOutput_Complete_DE ,
+        :skPush_CurrentStateOutput_Resetting_DE ,
+        :skPush_CurrentStateOutput_Holding_DE ,
+        :skPush_CurrentStateOutput_Held_DE ,
+        :skPush_CurrentStateOutput_Unholding_DE ,
+        :skPush_CurrentStateOutput_Suspending_DE ,
+        :skPush_CurrentStateOutput_Suspended_DE ,
+        :skPush_CurrentStateOutput_Unsuspending_DE ,
+        :skPush_CurrentStateOutput_Stopping_DE ,
+        :skPush_CurrentStateOutput_Stopped_DE ,
+        :skPush_CurrentStateOutput_Aborting_DE ,
+        :skPush_CurrentStateOutput_Aborted_DE ,
+        :skPush_CurrentStateOutput_Clearing_DE .
+
+
+# =============================================================================
+# Skill parameter IN1  ->  OPC UA node IN1 (writable INT input)
+# =============================================================================
+
+:skPush_SkillParameter_IN1 a CSS:SkillParameter , OpcUa:UAVariable , owl:NamedIndividual ;
+    OpcUa:nodeId "ns=2;g=838fc146-be15-a9ed-100f-d928e2a55735" ;
+    OpcUa:nodeNamespace "2" ;
+    CaSk:hasVariableName "IN1" ;
+    CaSk:hasVariableType "int" ;
+    CaSk:hasDefaultValue "0" ;
+    CaSk:isRequired false .
+
+
+# =============================================================================
+# Skill output OUT1  ->  OPC UA node OUT1 (readable INT output)
+# =============================================================================
+
+:skPush_SkillOutput_OUT1 a CaSk:SkillOutput , OpcUa:UAVariable , owl:NamedIndividual ;
+    OpcUa:nodeId "ns=2;g=e7669968-4af4-6256-f112-9dcc31c1045d" ;
+    OpcUa:nodeNamespace "2" ;
+    CaSk:hasVariableName "OUT1" ;
+    CaSk:hasVariableType "int" ;
+    CaSk:hasDefaultValue "0" ;
+    CaSk:isRequired false .
+
+
+# =============================================================================
+# ISA-88 state machine
+# =============================================================================
+
+:skPush_StateMachine a ISA88:StateMachine , owl:NamedIndividual ;
+    ISA88:hasState
+        :skPush_StateMachine_Idle ,
+        :skPush_StateMachine_Starting ,
+        :skPush_StateMachine_Execute ,
+        :skPush_StateMachine_Completing ,
+        :skPush_StateMachine_Complete ,
+        :skPush_StateMachine_Resetting ,
+        :skPush_StateMachine_Holding ,
+        :skPush_StateMachine_Held ,
+        :skPush_StateMachine_Unholding ,
+        :skPush_StateMachine_Suspending ,
+        :skPush_StateMachine_Suspended ,
+        :skPush_StateMachine_Unsuspending ,
+        :skPush_StateMachine_Stopping ,
+        :skPush_StateMachine_Stopped ,
+        :skPush_StateMachine_Aborting ,
+        :skPush_StateMachine_Aborted ,
+        :skPush_StateMachine_Clearing ;
+    ISA88:hasTransition
+        :skPush_StateMachine_StartCommand ,
+        :skPush_StateMachine_ResetCommand ,
+        :skPush_StateMachine_HoldCommand ,
+        :skPush_StateMachine_UnholdCommand ,
+        :skPush_StateMachine_SuspendCommand ,
+        :skPush_StateMachine_UnsuspendCommand ,
+        :skPush_StateMachine_ClearCommand ,
+        :skPush_StateMachine_StopCommand ,
+        :skPush_StateMachine_AbortCommand ,
+        :skPush_StateMachine_Starting_State_Complete ,
+        :skPush_StateMachine_Execute_State_Complete ,
+        :skPush_StateMachine_Completing_State_Complete ,
+        :skPush_StateMachine_Holding_State_Complete ,
+        :skPush_StateMachine_Unholding_State_Complete ,
+        :skPush_StateMachine_Suspending_State_Complete ,
+        :skPush_StateMachine_Unsuspending_State_Complete ,
+        :skPush_StateMachine_Resetting_State_Complete ,
+        :skPush_StateMachine_Stopping_State_Complete ,
+        :skPush_StateMachine_Clearing_State_Complete ,
+        :skPush_StateMachine_Aborting_State_Complete .
+
+
+# -----------------------------------------------------------------------------
+# States  (each connected with the transitions that may leave it)
+# -----------------------------------------------------------------------------
+
+:skPush_StateMachine_Idle a ISA88:Idle , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Idle_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_StartCommand ,
+        :skPush_StateMachine_StopCommand ,
+        :skPush_StateMachine_AbortCommand .
+
+:skPush_StateMachine_Starting a ISA88:Starting , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Starting_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_Starting_State_Complete ,
+        :skPush_StateMachine_StopCommand ,
+        :skPush_StateMachine_AbortCommand .
+
+:skPush_StateMachine_Execute a ISA88:Execute , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Execute_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_Execute_State_Complete ,
+        :skPush_StateMachine_HoldCommand ,
+        :skPush_StateMachine_SuspendCommand ,
+        :skPush_StateMachine_StopCommand ,
+        :skPush_StateMachine_AbortCommand .
+
+:skPush_StateMachine_Completing a ISA88:Completing , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Completing_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_Completing_State_Complete ,
+        :skPush_StateMachine_StopCommand ,
+        :skPush_StateMachine_AbortCommand .
+
+:skPush_StateMachine_Complete a ISA88:Complete , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Complete_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_ResetCommand ,
+        :skPush_StateMachine_StopCommand ,
+        :skPush_StateMachine_AbortCommand .
+
+:skPush_StateMachine_Resetting a ISA88:Resetting , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Resetting_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_Resetting_State_Complete ,
+        :skPush_StateMachine_StopCommand ,
+        :skPush_StateMachine_AbortCommand .
+
+:skPush_StateMachine_Holding a ISA88:Holding , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Holding_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_Holding_State_Complete ,
+        :skPush_StateMachine_StopCommand ,
+        :skPush_StateMachine_AbortCommand .
+
+:skPush_StateMachine_Held a ISA88:Held , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Held_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_UnholdCommand ,
+        :skPush_StateMachine_StopCommand ,
+        :skPush_StateMachine_AbortCommand .
+
+:skPush_StateMachine_Unholding a ISA88:Unholding , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Unholding_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_Unholding_State_Complete ,
+        :skPush_StateMachine_StopCommand ,
+        :skPush_StateMachine_AbortCommand .
+
+:skPush_StateMachine_Suspending a ISA88:Suspending , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Suspending_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_Suspending_State_Complete ,
+        :skPush_StateMachine_StopCommand ,
+        :skPush_StateMachine_AbortCommand .
+
+:skPush_StateMachine_Suspended a ISA88:Suspended , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Suspended_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_UnsuspendCommand ,
+        :skPush_StateMachine_StopCommand ,
+        :skPush_StateMachine_AbortCommand .
+
+:skPush_StateMachine_Unsuspending a ISA88:Unsuspending , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Unsuspending_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_Unsuspending_State_Complete ,
+        :skPush_StateMachine_StopCommand ,
+        :skPush_StateMachine_AbortCommand .
+
+:skPush_StateMachine_Stopping a ISA88:Stopping , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Stopping_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_Stopping_State_Complete ,
+        :skPush_StateMachine_AbortCommand .
+
+:skPush_StateMachine_Stopped a ISA88:Stopped , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Stopped_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_ResetCommand ,
+        :skPush_StateMachine_AbortCommand .
+
+:skPush_StateMachine_Aborting a ISA88:Aborting , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Aborting_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_Aborting_State_Complete .
+
+:skPush_StateMachine_Aborted a ISA88:Aborted , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Aborted_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_ClearCommand .
+
+:skPush_StateMachine_Clearing a ISA88:Clearing , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skPush_CurrentStateOutput_Clearing_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skPush_StateMachine_Clearing_State_Complete ,
+        :skPush_StateMachine_AbortCommand .
+
+
+# -----------------------------------------------------------------------------
+# Command transitions (fired by writing SKILL_CMD); each carries a Data_Element
+# whose Requirement instance holds the INT value to write.
+# -----------------------------------------------------------------------------
+
+:skPush_StateMachine_StartCommand a ISA88:StartCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Starting ;
+    DINEN61360:has_Data_Element :skPush_StartCommand_DE .
+
+:skPush_StartCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skPush_Command_Start_Required , :skPush_SkillCommand .
+
+:skPush_Command_Start_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 1 .
+
+
+:skPush_StateMachine_ResetCommand a ISA88:ResetCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Resetting ;
+    DINEN61360:has_Data_Element :skPush_ResetCommand_DE .
+
+:skPush_ResetCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skPush_Command_Reset_Required , :skPush_SkillCommand .
+
+:skPush_Command_Reset_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 2 .
+
+
+:skPush_StateMachine_HoldCommand a ISA88:HoldCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Holding ;
+    DINEN61360:has_Data_Element :skPush_HoldCommand_DE .
+
+:skPush_HoldCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skPush_Command_Hold_Required , :skPush_SkillCommand .
+
+:skPush_Command_Hold_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 3 .
+
+
+:skPush_StateMachine_UnholdCommand a ISA88:UnholdCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Unholding ;
+    DINEN61360:has_Data_Element :skPush_UnholdCommand_DE .
+
+:skPush_UnholdCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skPush_Command_Unhold_Required , :skPush_SkillCommand .
+
+:skPush_Command_Unhold_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 4 .
+
+
+:skPush_StateMachine_SuspendCommand a ISA88:SuspendCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Suspending ;
+    DINEN61360:has_Data_Element :skPush_SuspendCommand_DE .
+
+:skPush_SuspendCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skPush_Command_Suspend_Required , :skPush_SkillCommand .
+
+:skPush_Command_Suspend_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 5 .
+
+
+:skPush_StateMachine_UnsuspendCommand a ISA88:UnsuspendCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Unsuspending ;
+    DINEN61360:has_Data_Element :skPush_UnsuspendCommand_DE .
+
+:skPush_UnsuspendCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skPush_Command_Unsuspend_Required , :skPush_SkillCommand .
+
+:skPush_Command_Unsuspend_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 6 .
+
+
+:skPush_StateMachine_ClearCommand a ISA88:ClearCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Clearing ;
+    DINEN61360:has_Data_Element :skPush_ClearCommand_DE .
+
+:skPush_ClearCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skPush_Command_Clear_Required , :skPush_SkillCommand .
+
+:skPush_Command_Clear_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 7 .
+
+
+:skPush_StateMachine_StopCommand a ISA88:StopCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Stopping ;
+    DINEN61360:has_Data_Element :skPush_StopCommand_DE .
+
+:skPush_StopCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skPush_Command_Stop_Required , :skPush_SkillCommand .
+
+:skPush_Command_Stop_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 8 .
+
+
+:skPush_StateMachine_AbortCommand a ISA88:AbortCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Aborting ;
+    DINEN61360:has_Data_Element :skPush_AbortCommand_DE .
+
+:skPush_AbortCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skPush_Command_Abort_Required , :skPush_SkillCommand .
+
+:skPush_Command_Abort_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 9 .
+
+
+# -----------------------------------------------------------------------------
+# Automatic "state complete" transitions (no command, driven by the FB itself)
+# -----------------------------------------------------------------------------
+
+:skPush_StateMachine_Starting_State_Complete a ISA88:Starting_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Execute .
+
+:skPush_StateMachine_Execute_State_Complete a ISA88:Execute_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Completing .
+
+:skPush_StateMachine_Completing_State_Complete a ISA88:Completing_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Complete .
+
+:skPush_StateMachine_Holding_State_Complete a ISA88:Holding_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Held .
+
+:skPush_StateMachine_Unholding_State_Complete a ISA88:Unholding_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Execute .
+
+:skPush_StateMachine_Suspending_State_Complete a ISA88:Suspending_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Suspended .
+
+:skPush_StateMachine_Unsuspending_State_Complete a ISA88:Unsuspending_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Execute .
+
+:skPush_StateMachine_Resetting_State_Complete a ISA88:Resetting_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Idle .
+
+:skPush_StateMachine_Stopping_State_Complete a ISA88:Stopping_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Stopped .
+
+:skPush_StateMachine_Clearing_State_Complete a ISA88:Clearing_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Stopped .
+
+:skPush_StateMachine_Aborting_State_Complete a ISA88:Aborting_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skPush_StateMachine_Aborted .
+
+
+# =============================================================================
+# Data elements for the CURRENT_STATE output, one per ISA-88 state.
+# Each carries an "Assurance" instance holding the INT value that CURRENT_STATE
+# takes on while the state machine is in that state.
+# =============================================================================
+
+:skPush_CurrentStateOutput_Idle_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Idle_Assured .
+:skPush_CurrentState_Idle_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 1 .
+
+:skPush_CurrentStateOutput_Starting_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Starting_Assured .
+:skPush_CurrentState_Starting_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 2 .
+
+:skPush_CurrentStateOutput_Execute_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Execute_Assured .
+:skPush_CurrentState_Execute_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 3 .
+
+:skPush_CurrentStateOutput_Completing_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Completing_Assured .
+:skPush_CurrentState_Completing_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 4 .
+
+:skPush_CurrentStateOutput_Complete_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Complete_Assured .
+:skPush_CurrentState_Complete_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 5 .
+
+:skPush_CurrentStateOutput_Resetting_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Resetting_Assured .
+:skPush_CurrentState_Resetting_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 6 .
+
+:skPush_CurrentStateOutput_Holding_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Holding_Assured .
+:skPush_CurrentState_Holding_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 7 .
+
+:skPush_CurrentStateOutput_Held_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Held_Assured .
+:skPush_CurrentState_Held_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 8 .
+
+:skPush_CurrentStateOutput_Unholding_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Unholding_Assured .
+:skPush_CurrentState_Unholding_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 9 .
+
+:skPush_CurrentStateOutput_Suspending_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Suspending_Assured .
+:skPush_CurrentState_Suspending_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 10 .
+
+:skPush_CurrentStateOutput_Suspended_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Suspended_Assured .
+:skPush_CurrentState_Suspended_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 11 .
+
+:skPush_CurrentStateOutput_Unsuspending_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Unsuspending_Assured .
+:skPush_CurrentState_Unsuspending_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 12 .
+
+:skPush_CurrentStateOutput_Stopping_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Stopping_Assured .
+:skPush_CurrentState_Stopping_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 13 .
+
+:skPush_CurrentStateOutput_Stopped_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Stopped_Assured .
+:skPush_CurrentState_Stopped_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 14 .
+
+:skPush_CurrentStateOutput_Aborting_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Aborting_Assured .
+:skPush_CurrentState_Aborting_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 15 .
+
+:skPush_CurrentStateOutput_Aborted_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Aborted_Assured .
+:skPush_CurrentState_Aborted_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 16 .
+
+:skPush_CurrentStateOutput_Clearing_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skPush_CurrentState_Clearing_Assured .
+:skPush_CurrentState_Clearing_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 17 .

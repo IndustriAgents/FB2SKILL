@@ -1,0 +1,658 @@
+# =============================================================================
+# skTransfer.ttl
+# -----------------------------------------------------------------------------
+# Capability & Skill description of the IEC 61499 "skTransfer" application,
+# deployed on the Schneider Electric soft dPAC (SE.DPAC#Soft_dPAC, PLC1).
+#
+# Generated from:
+#   - IEC 61499 project : d:\FESTO_DS_skills\IEC61499  (skTransfer.fbt / BasicSKILL / SKILL_BFB)
+#   - OPC UA node set   : System.PLC1.opcua.xml  (UAObject "skTransfer")
+#
+# The skTransfer function block exposes its main skill interface as "Skill_Head"
+# (a BasicSKILL / SKILL_BFB instance); its ISA-88 / PackML state machine is
+# driven by writing an INT command to SKILL_CMD and observed by reading the INT
+# CURRENT_STATE variable. (skTransfer also contains the sub-skills GTL2, GTR2,
+# Pick2 and Place2 - internal orchestration, not modelled as separate skills.)
+#
+# OPC UA server : opc.tcp://host.docker.internal:4840  (SecurityPolicy None,
+#                 Anonymous). The soft dPAC OPC UA server runs on the Windows
+#                 host (advertised as opc.tcp://LTU-83334:4840); the CaSkade-MES
+#                 backend runs in Docker and reaches the host via
+#                 host.docker.internal.
+# Namespace ns=2: http://se.com/EcostruxureSystemExpert
+#                 (declared as index 1 in System.PLC1.opcua.xml, but the running
+#                  server resolves it to index 2 - index 1 is the server's own)
+#
+# Modelled as a CaSkMan:OpcUaVariableSkillInterface so that the CaSkade-MES
+# OpcUaVariableSkillExecutor fires transitions by writing the command value.
+#
+# SKILL_CMD command values : Start=1 Reset=2 Hold=3 Unhold=4 Suspend=5
+#                            Unsuspend=6 Clear=7 Stop=8 Abort=9
+# CURRENT_STATE values     : Idle=1 Starting=2 Execute=3 Completing=4 Complete=5
+#                            Resetting=6 Holding=7 Held=8 Unholding=9
+#                            Suspending=10 Suspended=11 Unsuspending=12
+#                            Stopping=13 Stopped=14 Aborting=15 Aborted=16
+#                            Clearing=17
+# =============================================================================
+
+@prefix :            <http://www.ltu.se/aut/ontologies/FESTO_DS_skills#> .
+@prefix CSS:         <http://www.w3id.org/hsu-aut/css#> .
+@prefix CaSk:        <http://www.w3id.org/hsu-aut/cask#> .
+@prefix CaSkMan:     <http://www.w3id.org/hsu-aut/caskman#> .
+@prefix OpcUa:       <http://www.w3id.org/hsu-aut/OpcUa#> .
+@prefix ISA88:       <http://www.hsu-ifa.de/ontologies/ISA-TR88#> .
+@prefix DINEN61360:  <http://www.w3id.org/hsu-aut/DINEN61360#> .
+@prefix VDI3682:     <http://www.w3id.org/hsu-aut/VDI3682#> .
+@prefix owl:         <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:         <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:        <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:         <http://www.w3.org/2001/XMLSchema#> .
+
+
+# =============================================================================
+# Resource, Capability and Skill
+# =============================================================================
+
+:soft_dPAC_PLC1 a CSS:Resource , owl:NamedIndividual ;
+    CSS:providesCapability :skTransfer_Capability ;
+    CSS:providesSkill :skTransfer .
+
+:skTransfer_Capability a CaSk:ProvidedCapability , CSS:Capability , owl:NamedIndividual ;
+    CSS:isRealizedBySkill :skTransfer .
+
+# A VDI 3682 process operator that requires the capability. The CaSkade-MES
+# capability query only returns capabilities required by a ProcessOperator,
+# so this link is needed for the skill to register cleanly.
+:skTransfer_Process a VDI3682:ProcessOperator , owl:NamedIndividual ;
+    CSS:requiresCapability :skTransfer_Capability .
+
+:skTransfer a CSS:Skill , CaSkMan:PlcSkill , owl:NamedIndividual ;
+    CSS:behaviorConformsTo :skTransfer_StateMachine ;
+    CSS:accessibleThrough :skTransfer_Interface ;
+    CaSkMan:accessibleThroughOpcUaVariableInterface :skTransfer_Interface ;
+    CaSk:hasCurrentState :skTransfer_StateMachine_Idle ;
+    CaSk:hasCurrentStateOutput :skTransfer_CurrentStateOutput ;
+    CaSk:hasSkillCommand :skTransfer_SkillCommand ;
+    CaSk:hasSkillOutput :skTransfer_CurrentStateOutput , :skTransfer_SkillOutput_OUT1 ;
+    CSS:hasParameter :skTransfer_SkillParameter_IN1 .
+
+
+# =============================================================================
+# Skill interface (OPC UA variable interface)
+# =============================================================================
+
+:skTransfer_Interface a CaSkMan:OpcUaVariableSkillInterface , CSS:SkillInterface , owl:NamedIndividual ;
+    OpcUa:nodeId "ns=2;g=308d6e7d-5dd7-0a92-c11e-6cb736c2bd26" ;
+    OpcUa:nodeNamespace "2" ;
+    CaSk:exposesStateMachine :skTransfer_StateMachine ;
+    CaSk:exposesSkillParameter :skTransfer_SkillCommand ,
+        :skTransfer_SkillParameter_IN1 ,
+        :skTransfer_SkillOutput_OUT1 ;
+    OpcUa:organizes :skTransfer_SkillCommand ,
+        :skTransfer_CurrentStateOutput ,
+        :skTransfer_SkillParameter_IN1 ,
+        :skTransfer_SkillOutput_OUT1 .
+
+
+# =============================================================================
+# OPC UA server, node set and endpoint
+# =============================================================================
+
+:skTransfer_OPCUAServer a OpcUa:UAServer , owl:NamedIndividual ;
+    OpcUa:hasNodeSet :skTransfer_OPCUANodeSet ;
+    OpcUa:hasEndpointDescription :skTransfer_OPCUAServer_Endpoint .
+
+:skTransfer_OPCUANodeSet a OpcUa:UANodeSet , owl:NamedIndividual ;
+    OpcUa:containsNode :skTransfer_Interface ,
+        :skTransfer_SkillCommand ,
+        :skTransfer_CurrentStateOutput ,
+        :skTransfer_SkillParameter_IN1 ,
+        :skTransfer_SkillOutput_OUT1 ;
+    OpcUa:organizes :skTransfer_Interface ,
+        :skTransfer_SkillCommand ,
+        :skTransfer_CurrentStateOutput ,
+        :skTransfer_SkillParameter_IN1 ,
+        :skTransfer_SkillOutput_OUT1 .
+
+:skTransfer_OPCUAServer_Endpoint a OpcUa:EndpointDescription , owl:NamedIndividual ;
+    OpcUa:hasEndpointUrl "opc.tcp://host.docker.internal:4840" ;
+    OpcUa:hasMessageSecurityMode OpcUa:MessageSecurityMode_None ;
+    OpcUa:hasSecurityPolicy OpcUa:SecurityPolicy_None ;
+    OpcUa:hasUserIdentityToken :skTransfer_OPCUAServer_Endpoint_UserIdentityToken .
+
+:skTransfer_OPCUAServer_Endpoint_UserIdentityToken a OpcUa:AnonymousIdentityToken , OpcUa:UserIdentityToken , owl:NamedIndividual ;
+    OpcUa:requiresUserName "" ;
+    OpcUa:requiresPassword "" .
+
+# The CaSkade-MES backend resolves the server endpoint with a query that joins on
+#   ?tokenType rdfs:subClassOf OpcUa:UserIdentityToken
+# That subclass axiom belongs to the OPC UA ontology. It is asserted here so the
+# skill resolves its endpoint even when that ontology is not imported into
+# GraphDB - otherwise the query returns no rows and the backend crashes.
+OpcUa:AnonymousIdentityToken rdfs:subClassOf OpcUa:UserIdentityToken .
+
+
+# =============================================================================
+# Skill command variable  ->  OPC UA node SKILL_CMD
+# (single INT variable; each transition writes its required value into it)
+# =============================================================================
+
+:skTransfer_SkillCommand a CaSk:SkillCommand , OpcUa:UAVariable , DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "ActualValue" ;
+    OpcUa:nodeId "ns=2;g=38b6386b-0cbb-b191-cf32-d8c5614d1bd0" ;
+    OpcUa:nodeNamespace "2" ;
+    DINEN61360:is_Instance_Description_of_Data_Element
+        :skTransfer_StartCommand_DE ,
+        :skTransfer_ResetCommand_DE ,
+        :skTransfer_HoldCommand_DE ,
+        :skTransfer_UnholdCommand_DE ,
+        :skTransfer_SuspendCommand_DE ,
+        :skTransfer_UnsuspendCommand_DE ,
+        :skTransfer_ClearCommand_DE ,
+        :skTransfer_StopCommand_DE ,
+        :skTransfer_AbortCommand_DE .
+
+
+# =============================================================================
+# Current state output  ->  OPC UA node CURRENT_STATE
+# =============================================================================
+
+:skTransfer_CurrentStateOutput a CaSk:CurrentStateOutput , OpcUa:UAVariable , DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "ActualValue" ;
+    OpcUa:nodeId "ns=2;g=8b8690df-3420-1f64-1f06-6343a664a230" ;
+    OpcUa:nodeNamespace "2" ;
+    DINEN61360:is_Instance_Description_of_Data_Element
+        :skTransfer_CurrentStateOutput_Idle_DE ,
+        :skTransfer_CurrentStateOutput_Starting_DE ,
+        :skTransfer_CurrentStateOutput_Execute_DE ,
+        :skTransfer_CurrentStateOutput_Completing_DE ,
+        :skTransfer_CurrentStateOutput_Complete_DE ,
+        :skTransfer_CurrentStateOutput_Resetting_DE ,
+        :skTransfer_CurrentStateOutput_Holding_DE ,
+        :skTransfer_CurrentStateOutput_Held_DE ,
+        :skTransfer_CurrentStateOutput_Unholding_DE ,
+        :skTransfer_CurrentStateOutput_Suspending_DE ,
+        :skTransfer_CurrentStateOutput_Suspended_DE ,
+        :skTransfer_CurrentStateOutput_Unsuspending_DE ,
+        :skTransfer_CurrentStateOutput_Stopping_DE ,
+        :skTransfer_CurrentStateOutput_Stopped_DE ,
+        :skTransfer_CurrentStateOutput_Aborting_DE ,
+        :skTransfer_CurrentStateOutput_Aborted_DE ,
+        :skTransfer_CurrentStateOutput_Clearing_DE .
+
+
+# =============================================================================
+# Skill parameter IN1  ->  OPC UA node IN1 (writable INT input)
+# =============================================================================
+
+:skTransfer_SkillParameter_IN1 a CSS:SkillParameter , OpcUa:UAVariable , owl:NamedIndividual ;
+    OpcUa:nodeId "ns=2;g=24bd3fab-dbb8-ad98-d937-f2c0908fbc5b" ;
+    OpcUa:nodeNamespace "2" ;
+    CaSk:hasVariableName "IN1" ;
+    CaSk:hasVariableType "int" ;
+    CaSk:hasDefaultValue "0" ;
+    CaSk:isRequired false .
+
+
+# =============================================================================
+# Skill output OUT1  ->  OPC UA node OUT1 (readable INT output)
+# =============================================================================
+
+:skTransfer_SkillOutput_OUT1 a CaSk:SkillOutput , OpcUa:UAVariable , owl:NamedIndividual ;
+    OpcUa:nodeId "ns=2;g=5c94ea85-0d40-cf1a-198f-a1d8b88cf8b8" ;
+    OpcUa:nodeNamespace "2" ;
+    CaSk:hasVariableName "OUT1" ;
+    CaSk:hasVariableType "int" ;
+    CaSk:hasDefaultValue "0" ;
+    CaSk:isRequired false .
+
+
+# =============================================================================
+# ISA-88 state machine
+# =============================================================================
+
+:skTransfer_StateMachine a ISA88:StateMachine , owl:NamedIndividual ;
+    ISA88:hasState
+        :skTransfer_StateMachine_Idle ,
+        :skTransfer_StateMachine_Starting ,
+        :skTransfer_StateMachine_Execute ,
+        :skTransfer_StateMachine_Completing ,
+        :skTransfer_StateMachine_Complete ,
+        :skTransfer_StateMachine_Resetting ,
+        :skTransfer_StateMachine_Holding ,
+        :skTransfer_StateMachine_Held ,
+        :skTransfer_StateMachine_Unholding ,
+        :skTransfer_StateMachine_Suspending ,
+        :skTransfer_StateMachine_Suspended ,
+        :skTransfer_StateMachine_Unsuspending ,
+        :skTransfer_StateMachine_Stopping ,
+        :skTransfer_StateMachine_Stopped ,
+        :skTransfer_StateMachine_Aborting ,
+        :skTransfer_StateMachine_Aborted ,
+        :skTransfer_StateMachine_Clearing ;
+    ISA88:hasTransition
+        :skTransfer_StateMachine_StartCommand ,
+        :skTransfer_StateMachine_ResetCommand ,
+        :skTransfer_StateMachine_HoldCommand ,
+        :skTransfer_StateMachine_UnholdCommand ,
+        :skTransfer_StateMachine_SuspendCommand ,
+        :skTransfer_StateMachine_UnsuspendCommand ,
+        :skTransfer_StateMachine_ClearCommand ,
+        :skTransfer_StateMachine_StopCommand ,
+        :skTransfer_StateMachine_AbortCommand ,
+        :skTransfer_StateMachine_Starting_State_Complete ,
+        :skTransfer_StateMachine_Execute_State_Complete ,
+        :skTransfer_StateMachine_Completing_State_Complete ,
+        :skTransfer_StateMachine_Holding_State_Complete ,
+        :skTransfer_StateMachine_Unholding_State_Complete ,
+        :skTransfer_StateMachine_Suspending_State_Complete ,
+        :skTransfer_StateMachine_Unsuspending_State_Complete ,
+        :skTransfer_StateMachine_Resetting_State_Complete ,
+        :skTransfer_StateMachine_Stopping_State_Complete ,
+        :skTransfer_StateMachine_Clearing_State_Complete ,
+        :skTransfer_StateMachine_Aborting_State_Complete .
+
+
+# -----------------------------------------------------------------------------
+# States  (each connected with the transitions that may leave it)
+# -----------------------------------------------------------------------------
+
+:skTransfer_StateMachine_Idle a ISA88:Idle , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Idle_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_StartCommand ,
+        :skTransfer_StateMachine_StopCommand ,
+        :skTransfer_StateMachine_AbortCommand .
+
+:skTransfer_StateMachine_Starting a ISA88:Starting , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Starting_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_Starting_State_Complete ,
+        :skTransfer_StateMachine_StopCommand ,
+        :skTransfer_StateMachine_AbortCommand .
+
+:skTransfer_StateMachine_Execute a ISA88:Execute , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Execute_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_Execute_State_Complete ,
+        :skTransfer_StateMachine_HoldCommand ,
+        :skTransfer_StateMachine_SuspendCommand ,
+        :skTransfer_StateMachine_StopCommand ,
+        :skTransfer_StateMachine_AbortCommand .
+
+:skTransfer_StateMachine_Completing a ISA88:Completing , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Completing_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_Completing_State_Complete ,
+        :skTransfer_StateMachine_StopCommand ,
+        :skTransfer_StateMachine_AbortCommand .
+
+:skTransfer_StateMachine_Complete a ISA88:Complete , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Complete_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_ResetCommand ,
+        :skTransfer_StateMachine_StopCommand ,
+        :skTransfer_StateMachine_AbortCommand .
+
+:skTransfer_StateMachine_Resetting a ISA88:Resetting , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Resetting_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_Resetting_State_Complete ,
+        :skTransfer_StateMachine_StopCommand ,
+        :skTransfer_StateMachine_AbortCommand .
+
+:skTransfer_StateMachine_Holding a ISA88:Holding , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Holding_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_Holding_State_Complete ,
+        :skTransfer_StateMachine_StopCommand ,
+        :skTransfer_StateMachine_AbortCommand .
+
+:skTransfer_StateMachine_Held a ISA88:Held , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Held_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_UnholdCommand ,
+        :skTransfer_StateMachine_StopCommand ,
+        :skTransfer_StateMachine_AbortCommand .
+
+:skTransfer_StateMachine_Unholding a ISA88:Unholding , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Unholding_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_Unholding_State_Complete ,
+        :skTransfer_StateMachine_StopCommand ,
+        :skTransfer_StateMachine_AbortCommand .
+
+:skTransfer_StateMachine_Suspending a ISA88:Suspending , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Suspending_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_Suspending_State_Complete ,
+        :skTransfer_StateMachine_StopCommand ,
+        :skTransfer_StateMachine_AbortCommand .
+
+:skTransfer_StateMachine_Suspended a ISA88:Suspended , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Suspended_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_UnsuspendCommand ,
+        :skTransfer_StateMachine_StopCommand ,
+        :skTransfer_StateMachine_AbortCommand .
+
+:skTransfer_StateMachine_Unsuspending a ISA88:Unsuspending , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Unsuspending_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_Unsuspending_State_Complete ,
+        :skTransfer_StateMachine_StopCommand ,
+        :skTransfer_StateMachine_AbortCommand .
+
+:skTransfer_StateMachine_Stopping a ISA88:Stopping , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Stopping_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_Stopping_State_Complete ,
+        :skTransfer_StateMachine_AbortCommand .
+
+:skTransfer_StateMachine_Stopped a ISA88:Stopped , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Stopped_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_ResetCommand ,
+        :skTransfer_StateMachine_AbortCommand .
+
+:skTransfer_StateMachine_Aborting a ISA88:Aborting , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Aborting_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_Aborting_State_Complete .
+
+:skTransfer_StateMachine_Aborted a ISA88:Aborted , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Aborted_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_ClearCommand .
+
+:skTransfer_StateMachine_Clearing a ISA88:Clearing , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :skTransfer_CurrentStateOutput_Clearing_DE ;
+    ISA88:State_is_connected_with_Transition
+        :skTransfer_StateMachine_Clearing_State_Complete ,
+        :skTransfer_StateMachine_AbortCommand .
+
+
+# -----------------------------------------------------------------------------
+# Command transitions (fired by writing SKILL_CMD); each carries a Data_Element
+# whose Requirement instance holds the INT value to write.
+# -----------------------------------------------------------------------------
+
+:skTransfer_StateMachine_StartCommand a ISA88:StartCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Starting ;
+    DINEN61360:has_Data_Element :skTransfer_StartCommand_DE .
+
+:skTransfer_StartCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_Command_Start_Required , :skTransfer_SkillCommand .
+
+:skTransfer_Command_Start_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 1 .
+
+
+:skTransfer_StateMachine_ResetCommand a ISA88:ResetCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Resetting ;
+    DINEN61360:has_Data_Element :skTransfer_ResetCommand_DE .
+
+:skTransfer_ResetCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_Command_Reset_Required , :skTransfer_SkillCommand .
+
+:skTransfer_Command_Reset_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 2 .
+
+
+:skTransfer_StateMachine_HoldCommand a ISA88:HoldCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Holding ;
+    DINEN61360:has_Data_Element :skTransfer_HoldCommand_DE .
+
+:skTransfer_HoldCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_Command_Hold_Required , :skTransfer_SkillCommand .
+
+:skTransfer_Command_Hold_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 3 .
+
+
+:skTransfer_StateMachine_UnholdCommand a ISA88:UnholdCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Unholding ;
+    DINEN61360:has_Data_Element :skTransfer_UnholdCommand_DE .
+
+:skTransfer_UnholdCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_Command_Unhold_Required , :skTransfer_SkillCommand .
+
+:skTransfer_Command_Unhold_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 4 .
+
+
+:skTransfer_StateMachine_SuspendCommand a ISA88:SuspendCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Suspending ;
+    DINEN61360:has_Data_Element :skTransfer_SuspendCommand_DE .
+
+:skTransfer_SuspendCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_Command_Suspend_Required , :skTransfer_SkillCommand .
+
+:skTransfer_Command_Suspend_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 5 .
+
+
+:skTransfer_StateMachine_UnsuspendCommand a ISA88:UnsuspendCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Unsuspending ;
+    DINEN61360:has_Data_Element :skTransfer_UnsuspendCommand_DE .
+
+:skTransfer_UnsuspendCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_Command_Unsuspend_Required , :skTransfer_SkillCommand .
+
+:skTransfer_Command_Unsuspend_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 6 .
+
+
+:skTransfer_StateMachine_ClearCommand a ISA88:ClearCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Clearing ;
+    DINEN61360:has_Data_Element :skTransfer_ClearCommand_DE .
+
+:skTransfer_ClearCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_Command_Clear_Required , :skTransfer_SkillCommand .
+
+:skTransfer_Command_Clear_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 7 .
+
+
+:skTransfer_StateMachine_StopCommand a ISA88:StopCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Stopping ;
+    DINEN61360:has_Data_Element :skTransfer_StopCommand_DE .
+
+:skTransfer_StopCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_Command_Stop_Required , :skTransfer_SkillCommand .
+
+:skTransfer_Command_Stop_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 8 .
+
+
+:skTransfer_StateMachine_AbortCommand a ISA88:AbortCommand , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Aborting ;
+    DINEN61360:has_Data_Element :skTransfer_AbortCommand_DE .
+
+:skTransfer_AbortCommand_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_Command_Abort_Required , :skTransfer_SkillCommand .
+
+:skTransfer_Command_Abort_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value 9 .
+
+
+# -----------------------------------------------------------------------------
+# Automatic "state complete" transitions (no command, driven by the FB itself)
+# -----------------------------------------------------------------------------
+
+:skTransfer_StateMachine_Starting_State_Complete a ISA88:Starting_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Execute .
+
+:skTransfer_StateMachine_Execute_State_Complete a ISA88:Execute_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Completing .
+
+:skTransfer_StateMachine_Completing_State_Complete a ISA88:Completing_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Complete .
+
+:skTransfer_StateMachine_Holding_State_Complete a ISA88:Holding_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Held .
+
+:skTransfer_StateMachine_Unholding_State_Complete a ISA88:Unholding_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Execute .
+
+:skTransfer_StateMachine_Suspending_State_Complete a ISA88:Suspending_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Suspended .
+
+:skTransfer_StateMachine_Unsuspending_State_Complete a ISA88:Unsuspending_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Execute .
+
+:skTransfer_StateMachine_Resetting_State_Complete a ISA88:Resetting_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Idle .
+
+:skTransfer_StateMachine_Stopping_State_Complete a ISA88:Stopping_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Stopped .
+
+:skTransfer_StateMachine_Clearing_State_Complete a ISA88:Clearing_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Stopped .
+
+:skTransfer_StateMachine_Aborting_State_Complete a ISA88:Aborting_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :skTransfer_StateMachine_Aborted .
+
+
+# =============================================================================
+# Data elements for the CURRENT_STATE output, one per ISA-88 state.
+# Each carries an "Assurance" instance holding the INT value that CURRENT_STATE
+# takes on while the state machine is in that state.
+# =============================================================================
+
+:skTransfer_CurrentStateOutput_Idle_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Idle_Assured .
+:skTransfer_CurrentState_Idle_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 1 .
+
+:skTransfer_CurrentStateOutput_Starting_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Starting_Assured .
+:skTransfer_CurrentState_Starting_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 2 .
+
+:skTransfer_CurrentStateOutput_Execute_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Execute_Assured .
+:skTransfer_CurrentState_Execute_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 3 .
+
+:skTransfer_CurrentStateOutput_Completing_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Completing_Assured .
+:skTransfer_CurrentState_Completing_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 4 .
+
+:skTransfer_CurrentStateOutput_Complete_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Complete_Assured .
+:skTransfer_CurrentState_Complete_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 5 .
+
+:skTransfer_CurrentStateOutput_Resetting_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Resetting_Assured .
+:skTransfer_CurrentState_Resetting_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 6 .
+
+:skTransfer_CurrentStateOutput_Holding_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Holding_Assured .
+:skTransfer_CurrentState_Holding_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 7 .
+
+:skTransfer_CurrentStateOutput_Held_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Held_Assured .
+:skTransfer_CurrentState_Held_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 8 .
+
+:skTransfer_CurrentStateOutput_Unholding_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Unholding_Assured .
+:skTransfer_CurrentState_Unholding_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 9 .
+
+:skTransfer_CurrentStateOutput_Suspending_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Suspending_Assured .
+:skTransfer_CurrentState_Suspending_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 10 .
+
+:skTransfer_CurrentStateOutput_Suspended_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Suspended_Assured .
+:skTransfer_CurrentState_Suspended_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 11 .
+
+:skTransfer_CurrentStateOutput_Unsuspending_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Unsuspending_Assured .
+:skTransfer_CurrentState_Unsuspending_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 12 .
+
+:skTransfer_CurrentStateOutput_Stopping_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Stopping_Assured .
+:skTransfer_CurrentState_Stopping_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 13 .
+
+:skTransfer_CurrentStateOutput_Stopped_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Stopped_Assured .
+:skTransfer_CurrentState_Stopped_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 14 .
+
+:skTransfer_CurrentStateOutput_Aborting_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Aborting_Assured .
+:skTransfer_CurrentState_Aborting_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 15 .
+
+:skTransfer_CurrentStateOutput_Aborted_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Aborted_Assured .
+:skTransfer_CurrentState_Aborted_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 16 .
+
+:skTransfer_CurrentStateOutput_Clearing_DE a DINEN61360:Data_Element , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:CurrentStateOutput_TD ;
+    DINEN61360:has_Instance_Description :skTransfer_CurrentState_Clearing_Assured .
+:skTransfer_CurrentState_Clearing_Assured a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Assurance" ;
+    DINEN61360:Value 17 .

@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fb2skill-rest"
+version = "0.1.0"
+description = "FastAPI REST server exposing fb2skill conversion"
+requires-python = ">=3.10"
+dependencies = [
+    "fb2skill-core",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.30",
+    "python-multipart>=0.0.9",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+]
+
+[project.scripts]
+fb2skill-rest = "fb2skill_rest.__main__:main"
+
+[tool.uv.sources]
+fb2skill-core = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fb2skill_rest"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

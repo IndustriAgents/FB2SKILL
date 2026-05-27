@@ -1,0 +1,15 @@
+# =============================================================================
+# Skill interface (OPC UA variable interface)
+# =============================================================================
+
+:{{ skill.name }}_Interface a CaSkMan:OpcUaVariableSkillInterface , CSS:SkillInterface , owl:NamedIndividual ;
+    OpcUa:nodeId "{{ skill.interface_node.node_id_str }}" ;
+    OpcUa:nodeNamespace "{{ skill.interface_node.namespace_idx }}" ;
+    CaSk:exposesStateMachine :{{ skill.name }}_StateMachine ;
+    CaSk:exposesSkillParameter :{{ skill.name }}_SkillCommand{% for v in skill.parameters %} ,
+        :{{ skill.name }}_SkillParameter_{{ v.name }}{% endfor %}{% for v in skill.outputs %} ,
+        :{{ skill.name }}_SkillOutput_{{ v.name }}{% endfor %} ;
+    OpcUa:organizes :{{ skill.name }}_SkillCommand ,
+        :{{ skill.name }}_CurrentStateOutput{% for v in skill.parameters %} ,
+        :{{ skill.name }}_SkillParameter_{{ v.name }}{% endfor %}{% for v in skill.outputs %} ,
+        :{{ skill.name }}_SkillOutput_{{ v.name }}{% endfor %} .

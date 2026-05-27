@@ -1,0 +1,56 @@
+# =============================================================================
+# ISA-88 state machine
+# =============================================================================
+
+:{{ skill.name }}_StateMachine a ISA88:StateMachine , owl:NamedIndividual ;
+    ISA88:hasState
+{% for st in states %}        :{{ skill.name }}_StateMachine_{{ st }}{% if not loop.last %} ,
+{% else %} ;
+{% endif %}{% endfor %}    ISA88:hasTransition
+{% for cmd in commands %}        :{{ skill.name }}_StateMachine_{{ cmd }}Command ,
+{% endfor %}{% for st in auto_transition_states %}        :{{ skill.name }}_StateMachine_{{ st }}_State_Complete{% if not loop.last %} ,
+{% else %} .
+{% endif %}{% endfor %}
+
+# -----------------------------------------------------------------------------
+# States  (each connected with the transitions that may leave it)
+# -----------------------------------------------------------------------------
+
+{% for st in states %}
+:{{ skill.name }}_StateMachine_{{ st }} a ISA88:{{ st }} , owl:NamedIndividual ;
+    DINEN61360:has_Data_Element :{{ skill.name }}_CurrentStateOutput_{{ st }}_DE ;
+    ISA88:State_is_connected_with_Transition
+{% for tr in state_outgoing[st] %}        :{{ skill.name }}_StateMachine_{{ tr }}{% if not loop.last %} ,
+{% else %} .
+{% endif %}{% endfor %}
+{% endfor %}
+
+# -----------------------------------------------------------------------------
+# Command transitions (fired by writing SKILL_CMD); each carries a Data_Element
+# whose Requirement instance holds the INT value to write.
+# -----------------------------------------------------------------------------
+
+{% for cmd in commands %}
+:{{ skill.name }}_StateMachine_{{ cmd }}Command a ISA88:{{ cmd }}Command , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :{{ skill.name }}_StateMachine_{{ command_target[cmd ~ "Command"] }} ;
+    DINEN61360:has_Data_Element :{{ skill.name }}_{{ cmd }}Command_DE .
+
+:{{ skill.name }}_{{ cmd }}Command_DE a DINEN61360:Data_Element , OpcUa:UAVariable , owl:NamedIndividual ;
+    DINEN61360:has_Type_Description CaSk:SkillCommandVariable_TD ;
+    DINEN61360:has_Instance_Description :{{ skill.name }}_Command_{{ cmd }}_Required , :{{ skill.name }}_SkillCommand .
+
+:{{ skill.name }}_Command_{{ cmd }}_Required a DINEN61360:Instance_Description , owl:NamedIndividual ;
+    DINEN61360:Expression_Goal "Requirement" ;
+    DINEN61360:Value {{ command_code[cmd] }} .
+
+
+{% endfor %}
+# -----------------------------------------------------------------------------
+# Automatic "state complete" transitions (no command, driven by the FB itself)
+# -----------------------------------------------------------------------------
+
+{% for st in auto_transition_states %}
+:{{ skill.name }}_StateMachine_{{ st }}_State_Complete a ISA88:{{ st }}_State_Complete , owl:NamedIndividual ;
+    ISA88:Transition_is_connected_with_State :{{ skill.name }}_StateMachine_{{ auto_target[st ~ "_State_Complete"] }} .
+
+{% endfor %}

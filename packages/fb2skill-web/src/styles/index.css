@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+/* Turtle syntax highlighting (highlight.js github theme, trimmed). */
+.hljs { display: block; overflow-x: auto; padding: 0.75em 1em; background: #f8fafc; color: #1e293b; }
+.hljs-comment { color: #64748b; font-style: italic; }
+.hljs-keyword, .hljs-meta { color: #7c3aed; font-weight: 600; }
+.hljs-string { color: #047857; }
+.hljs-number, .hljs-literal { color: #b45309; }
+.hljs-built_in, .hljs-type { color: #0369a1; }
+.hljs-symbol, .hljs-attr { color: #be185d; }

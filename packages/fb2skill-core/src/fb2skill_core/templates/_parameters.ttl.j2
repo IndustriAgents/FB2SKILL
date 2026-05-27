@@ -1,0 +1,28 @@
+{% for v in skill.parameters %}
+# =============================================================================
+# Skill parameter {{ v.name }}  ->  OPC UA node {{ v.name }} (writable {{ v.iec_type or v.sk_type|upper }} input)
+# =============================================================================
+
+:{{ skill.name }}_SkillParameter_{{ v.name }} a CSS:SkillParameter , OpcUa:UAVariable , owl:NamedIndividual ;
+    OpcUa:nodeId "{{ v.opcua.node_id_str }}" ;
+    OpcUa:nodeNamespace "{{ v.opcua.namespace_idx }}" ;
+    CaSk:hasVariableName "{{ v.name }}" ;
+    CaSk:hasVariableType "{{ v.sk_type }}" ;
+    CaSk:hasDefaultValue "{{ v.default }}" ;
+    CaSk:isRequired {{ "true" if v.required else "false" }} .
+
+{% endfor %}
+{% for v in skill.outputs %}
+# =============================================================================
+# Skill output {{ v.name }}  ->  OPC UA node {{ v.name }} (readable {{ v.iec_type or v.sk_type|upper }} output)
+# =============================================================================
+
+:{{ skill.name }}_SkillOutput_{{ v.name }} a CaSk:SkillOutput , OpcUa:UAVariable , owl:NamedIndividual ;
+    OpcUa:nodeId "{{ v.opcua.node_id_str }}" ;
+    OpcUa:nodeNamespace "{{ v.opcua.namespace_idx }}" ;
+    CaSk:hasVariableName "{{ v.name }}" ;
+    CaSk:hasVariableType "{{ v.sk_type }}" ;
+    CaSk:hasDefaultValue "{{ v.default }}" ;
+    CaSk:isRequired {{ "true" if v.required else "false" }} .
+
+{% endfor %}

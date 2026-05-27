@@ -1,0 +1,26 @@
+# =============================================================================
+# Resource, Capability and Skill
+# =============================================================================
+
+:{{ config.resource }} a CSS:Resource , owl:NamedIndividual ;
+    CSS:providesCapability :{{ skill.name }}_Capability ;
+    CSS:providesSkill :{{ skill.name }} .
+
+:{{ skill.name }}_Capability a CaSk:ProvidedCapability , CSS:Capability , owl:NamedIndividual ;
+    CSS:isRealizedBySkill :{{ skill.name }} .
+
+# A VDI 3682 process operator that requires the capability. The CaSkade-MES
+# capability query only returns capabilities required by a ProcessOperator,
+# so this link is needed for the skill to register cleanly.
+:{{ skill.name }}_Process a VDI3682:ProcessOperator , owl:NamedIndividual ;
+    CSS:requiresCapability :{{ skill.name }}_Capability .
+
+:{{ skill.name }} a CSS:Skill , CaSkMan:PlcSkill , owl:NamedIndividual ;
+    CSS:behaviorConformsTo :{{ skill.name }}_StateMachine ;
+    CSS:accessibleThrough :{{ skill.name }}_Interface ;
+    CaSkMan:accessibleThroughOpcUaVariableInterface :{{ skill.name }}_Interface ;
+    CaSk:hasCurrentState :{{ skill.name }}_StateMachine_Idle ;
+    CaSk:hasCurrentStateOutput :{{ skill.name }}_CurrentStateOutput ;
+    CaSk:hasSkillCommand :{{ skill.name }}_SkillCommand ;
+    CaSk:hasSkillOutput :{{ skill.name }}_CurrentStateOutput{% for v in skill.outputs %} , :{{ skill.name }}_SkillOutput_{{ v.name }}{% endfor %}{% if skill.parameters %} ;
+    CSS:hasParameter {% for v in skill.parameters %}:{{ skill.name }}_SkillParameter_{{ v.name }}{% if not loop.last %} , {% endif %}{% endfor %}{% endif %} .

@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fb2skill-cli"
+version = "0.1.0"
+description = "Command-line wrapper for fb2skill-core"
+requires-python = ">=3.10"
+dependencies = ["fb2skill-core"]
+
+[project.scripts]
+fb2skill = "fb2skill_cli.cli:main"
+
+[tool.uv.sources]
+fb2skill-core = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fb2skill_cli"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
